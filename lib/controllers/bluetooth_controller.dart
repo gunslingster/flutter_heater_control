@@ -8,7 +8,7 @@ class BluetoothController extends GetxController {
     // Start scanning
     flutterBlue.startScan(timeout: const Duration(seconds: 5));
 
-// Listen to scan results
+    // Listen to scan results
     var subscription = flutterBlue.scanResults.listen((results) {
       // do something with scan results
       for (ScanResult r in results) {
@@ -28,4 +28,46 @@ class BluetoothController extends GetxController {
     await device.connect();
   }
 
+  // disconnect from device
+  Future<void> disconnectFromDevice() async {
+    List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    for (BluetoothDevice device in connectedDevices) {
+      await device.disconnect();
+    }
+  }
+
+  // Function to get the currently connected device
+  Future<BluetoothDevice?> getConnectedDevice() async {
+    List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    if (connectedDevices.isNotEmpty) {
+      return connectedDevices.first;
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> writeIntensityCharacteristic(int value) async {
+    BluetoothDevice? device = await getConnectedDevice();
+    if (device != null) {
+      List<BluetoothService> services = await device.discoverServices();
+      for (BluetoothService service in services) {
+        print(service.uuid.toString());
+        if (service.uuid.toString().contains("cccc")) {
+          print(service.uuid.toString());
+          List<BluetoothCharacteristic> characteristics =
+              service.characteristics;
+          for (BluetoothCharacteristic characteristic in characteristics) {
+            print(characteristic.toString());
+            if (characteristic.uuid.toString() ==
+                "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
+              String stringValue = value.toString();
+              List<int> valueBytes = stringValue.codeUnits;
+              await characteristic.write(valueBytes);
+              break; // Exit the loop after writing
+            }
+          }
+        }
+      }
+    }
+  }
 }

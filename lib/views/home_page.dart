@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bluetooth_app/controllers/bluetooth_controller.dart';
 import 'package:get/get.dart';
+import 'control_page.dart'; // Import the ControlPage class
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -50,10 +51,17 @@ class HomePage extends StatelessWidget {
                               child: ListTile(
                                 onTap: () {},
                                 title: Text(device.name),
-                                subtitle: Text(device.id.id),
+                                subtitle: Text(device.name.isNotEmpty
+                                    ? device.name
+                                    : 'Unknown Device'),
                                 trailing: TextButton(
                                   onPressed: () {
                                     controller.connectToDevice(device);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ControlPage()),
+                                    );
                                   },
                                   child: Text(BluetoothDeviceState.connected ==
                                           device.state
