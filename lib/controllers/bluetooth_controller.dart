@@ -1,5 +1,6 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 
 class BluetoothController extends GetxController {
   FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
@@ -46,23 +47,51 @@ class BluetoothController extends GetxController {
     }
   }
 
-  Future<void> writeIntensityCharacteristic(int value) async {
+  // Future<void> writeIntensityCharacteristic(int value) async {
+  //   BluetoothDevice? device = await getConnectedDevice();
+  //   if (device != null) {
+  //     List<BluetoothService> services = await device.discoverServices();
+  //     for (BluetoothService service in services) {
+  //       print(service.uuid.toString());
+  //       if (service.uuid.toString().contains("cccc")) {
+  //         print(service.uuid.toString());
+  //         List<BluetoothCharacteristic> characteristics =
+  //             service.characteristics;
+  //         for (BluetoothCharacteristic characteristic in characteristics) {
+  //           print(characteristic.toString());
+  //           if (characteristic.uuid.toString() ==
+  //               "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
+  //             String stringValue = value.toString();
+  //             List<int> valueBytes = stringValue.codeUnits;
+  //             await characteristic.write(valueBytes);
+  //             break; // Exit the loop after writing
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  Future<void> sendControlData(
+      bool isHeaterOn, int timerValue, double sliderValue) async {
+    Map<String, dynamic> controlData = {
+      "isHeaterOn": isHeaterOn,
+      "timerValue": timerValue,
+      "sliderValue": sliderValue,
+    };
+
     BluetoothDevice? device = await getConnectedDevice();
     if (device != null) {
       List<BluetoothService> services = await device.discoverServices();
       for (BluetoothService service in services) {
-        print(service.uuid.toString());
         if (service.uuid.toString().contains("cccc")) {
-          print(service.uuid.toString());
           List<BluetoothCharacteristic> characteristics =
               service.characteristics;
           for (BluetoothCharacteristic characteristic in characteristics) {
-            print(characteristic.toString());
             if (characteristic.uuid.toString() ==
                 "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
-              String stringValue = value.toString();
-              List<int> valueBytes = stringValue.codeUnits;
-              await characteristic.write(valueBytes);
+              String dataString = jsonEncode(controlData);
+              List<int> dataBytes = dataString.codeUnits;
+              await characteristic.write(dataBytes);
               break; // Exit the loop after writing
             }
           }
