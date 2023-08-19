@@ -1,28 +1,64 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
+import 'dart:async';
 
 class BluetoothController extends GetxController {
   FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
 
-  Future scanDevices() async {
+  final StreamController<List<ScanResult>> _scanResultsController =
+      StreamController<List<ScanResult>>();
+
+  Future<void> scanDevices() async {
     // Start scanning
     flutterBlue.startScan(timeout: const Duration(seconds: 5));
+    // Listen to scan results
+    await for (var results in flutterBlue.scanResults) {
+      // Print all devices' information for debugging
+      for (var result in results) {
+        print('Device: ${result.device.name}');
+        print('RSSI: ${result.rssi}');
+        for (var uuid in result.advertisementData.serviceUuids) {
+          print('Service UUID: $uuid');
+        }
+        print('------------------------');
+      }
+    }
 
     // Listen to scan results
-    var subscription = flutterBlue.scanResults.listen((results) {
-      // do something with scan results
-      for (ScanResult r in results) {
-        print('${r.device.name} found! rssi: ${r.rssi}');
-      }
-    });
-    print('subscription: $subscription');
+    await for (var results in flutterBlue.scanResults) {
+      // Filter devices by service UUID containing 'CCCC'
+      var filteredResults = results.where((result) => result
+          .advertisementData.serviceUuids
+          .any((uuid) => uuid.toLowerCase().contains('cccc')));
+
+      // Add filtered results to the stream controller
+      _scanResultsController.add(filteredResults.toList());
+    }
+
     // Stop scanning
     flutterBlue.stopScan();
   }
 
-  // scan result stream
-  Stream<List<ScanResult>> get scanResults => flutterBlue.scanResults;
+  Stream<List<ScanResult>> get scanResults => _scanResultsController.stream;
+  // Future scanDevices() async {
+  //   // Start scanning
+  //   flutterBlue.startScan(timeout: const Duration(seconds: 5));
+
+  //   // Listen to scan results
+  //   var subscription = flutterBlue.scanResults.listen((results) {
+  //     // do something with scan results
+  //     for (ScanResult r in results) {
+  //       print('${r.device.name} found! rssi: ${r.rssi}');
+  //     }
+  //   });
+  //   print('subscription: $subscription');
+  //   // Stop scanning
+  //   flutterBlue.stopScan();
+  // }
+
+  // // scan result stream
+  // Stream<List<ScanResult>> get scanResults => flutterBlue.scanResults;
 
   // connect to device
   Future<void> connectToDevice(BluetoothDevice device) async {
