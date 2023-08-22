@@ -12,18 +12,6 @@ class BluetoothController extends GetxController {
   Future<void> scanDevices() async {
     // Start scanning
     flutterBlue.startScan(timeout: const Duration(seconds: 5));
-    // Listen to scan results
-    await for (var results in flutterBlue.scanResults) {
-      // Print all devices' information for debugging
-      for (var result in results) {
-        print('Device: ${result.device.name}');
-        print('RSSI: ${result.rssi}');
-        for (var uuid in result.advertisementData.serviceUuids) {
-          print('Service UUID: $uuid');
-        }
-        print('------------------------');
-      }
-    }
 
     // Listen to scan results
     await for (var results in flutterBlue.scanResults) {
