@@ -10,6 +10,12 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Center(
+            child: Text('Infratech Heater Control',
+                style: TextStyle(color: Colors.white))),
+        backgroundColor: Color(0xFFef4034),
+      ),
       body: GetBuilder<BluetoothController>(
           init: BluetoothController(),
           builder: (controller) {
