@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bluetooth_app/controllers/bluetooth_controller.dart';
 import 'package:get/get.dart';
-import 'control_page.dart'; // Import the ControlPage class
+import 'control_page.dart';
+import 'package:flutter_bluetooth_app/device_names.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -25,9 +26,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 20 * 3),
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        controller.scanDevices();
-                      },
+                      onPressed: controller.scanDevices,
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.blue,
@@ -52,36 +51,49 @@ class HomePage extends StatelessWidget {
                           itemCount: snapshot.data!.length,
                           itemBuilder: (context, index) {
                             final device = snapshot.data![index].device;
-                            return Card(
-                              elevation: 2,
-                              child: ListTile(
-                                onTap: () {},
-                                title: Text(device.name),
-                                subtitle: Text(device.name.isNotEmpty
+                            return FutureBuilder<String?>(
+                              future: getCustomDeviceName(device.id.toString()),
+                              builder: (context, deviceNameSnapshot) {
+                                String displayName = device.name.isNotEmpty
                                     ? device.name
-                                    : 'Unknown Device'),
-                                trailing: TextButton(
-                                  onPressed: () {
-                                    controller.connectToDevice(device);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ControlPage()),
-                                    );
-                                  },
-                                  child: Text(BluetoothDeviceState.connected ==
-                                          device.state
-                                      ? 'Connected'
-                                      : 'Connect'),
-                                ),
-                              ),
+                                    : 'Unknown Device';
+
+                                if (deviceNameSnapshot.hasData &&
+                                    deviceNameSnapshot.data != null) {
+                                  displayName = deviceNameSnapshot.data!;
+                                }
+
+                                return Card(
+                                  elevation: 2,
+                                  child: ListTile(
+                                    onTap: () {},
+                                    title: Text(displayName),
+                                    subtitle: Text(displayName),
+                                    trailing: TextButton(
+                                      onPressed: () {
+                                        controller.connectToDevice(device);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => ControlPage(
+                                                  device:
+                                                      device)), // Pass the device to the ControlPage
+                                        );
+                                      },
+                                      child: Text(
+                                          BluetoothDeviceState.connected ==
+                                                  device.state
+                                              ? 'Connected'
+                                              : 'Connect'),
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         );
                       } else {
-                        return const Center(
-                          child: Text('No devices found'),
-                        );
+                        return const Center(child: Text('No devices found'));
                       }
                     },
                   ),

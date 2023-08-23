@@ -3,8 +3,14 @@ import 'package:get/get.dart';
 import 'package:flutter_bluetooth_app/controllers/bluetooth_controller.dart';
 import 'dart:math';
 import 'dart:async';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_bluetooth_app/device_names.dart';
 
 class ControlPage extends StatefulWidget {
+  final BluetoothDevice device; // Accepting the device as a parameter
+
+  ControlPage({required this.device});
+
   @override
   _ControlPageState createState() => _ControlPageState();
 }
@@ -18,6 +24,8 @@ class _ControlPageState extends State<ControlPage> {
   bool _timerRunning = false;
 
   Timer? _timer;
+
+  TextEditingController _deviceNameController = TextEditingController();
 
   void _startTimer() {
     if (_remainingTime.inSeconds == 0) {
@@ -96,13 +104,24 @@ class _ControlPageState extends State<ControlPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          true, // This is true by default, but adding it here for clarity
       appBar: AppBar(
-        title: Text('Control Page'),
+        title: FutureBuilder<String?>(
+          future: getCustomDeviceName(widget.device.id.toString()),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              return Text(snapshot.data!);
+            }
+            return Text(widget.device.name);
+          },
+        ),
       ),
       body: GetBuilder<BluetoothController>(
         init: BluetoothController(),
         builder: (controller) {
-          return Center(
+          return SingleChildScrollView(
+              child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -178,9 +197,22 @@ class _ControlPageState extends State<ControlPage> {
                   child: Text('Reset Timer'),
                 ),
                 // ... Your existing buttons ...
+                TextField(
+                  controller: _deviceNameController,
+                  decoration:
+                      InputDecoration(labelText: "Set custom device name"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await setCustomDeviceName(widget.device.id.toString(),
+                        _deviceNameController.text);
+                    setState(() {}); // to refresh the UI
+                  },
+                  child: Text('Set Name'),
+                )
               ],
             ),
-          );
+          ));
         },
       ),
     );
