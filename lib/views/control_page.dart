@@ -269,18 +269,59 @@ class _ControlPageState extends State<ControlPage> {
                     child: Text('Reset Timer'),
                   ),
                   // ... Your existing buttons ...
-                  TextField(
-                    controller: _deviceNameController,
-                    decoration:
-                        InputDecoration(labelText: "Set custom device name"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await setCustomDeviceName(widget.device.id.toString(),
-                          _deviceNameController.text);
-                      setState(() {}); // to refresh the UI
-                    },
-                    child: Text('Set Name'),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment
+                          .start, // Aligns children vertically to the start.
+                      crossAxisAlignment: CrossAxisAlignment
+                          .center, // Centers children horizontally.
+                      children: <Widget>[
+                        Container(
+                          constraints: BoxConstraints(maxWidth: 300),
+                          child: TextField(
+                            controller: _deviceNameController,
+                            textAlign: TextAlign
+                                .center, // This centers the input text.
+                            decoration: InputDecoration(
+                              hintText: "Set custom device name",
+                              hintStyle: TextStyle(
+                                  color: Colors.grey[
+                                      400]), // Setting the hint text color to light grey
+                              alignLabelWithHint:
+                                  true, // This ensures the label is centered when hint text is multiline.
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.blue, width: 2.0),
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16.0),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await setCustomDeviceName(
+                                widget.device.id.toString(),
+                                _deviceNameController.text);
+                            setState(() {});
+                          },
+                          child: Text('Set Name'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   )
                 ],
               ),
