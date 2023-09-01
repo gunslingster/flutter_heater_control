@@ -213,7 +213,7 @@ class _ControlPageState extends State<ControlPage> {
                     min: 0,
                     max: 100,
                     divisions: 100,
-                    label: '$_sliderValue',
+                    label: '${_sliderValue.toInt()}',
                     activeColor: Colors.blue,
                   ),
                   SizedBox(height: 20),
