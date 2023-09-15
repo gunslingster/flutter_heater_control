@@ -47,7 +47,7 @@ class _ControlPageState extends State<ControlPage> {
 
     // Now get the heater status. Since you're reading it once, you can wait for the value to be available.
     Map<String, dynamic> status =
-        await _bluetoothController.subscribeToHeaterStatus(widget.device);
+        await _bluetoothController.readHeaterStatus(widget.device);
     print("In init state 3");
     print("Received Data from ESP32: $status");
     if (mounted) {
@@ -117,6 +117,11 @@ class _ControlPageState extends State<ControlPage> {
     _timer?.cancel();
     setState(() {
       _timerRunning = false;
+      // Set heater to off and slider value to zero once the timer reaches zero.
+      if (_remainingTime.inSeconds == 0) {
+        _isHeaterOn = false;
+        _sliderValue = 0;
+      }
     });
   }
 

@@ -15,8 +15,7 @@ class BluetoothController extends GetxController {
   Stream<Map<String, dynamic>> get heaterStatus =>
       _heaterStatusController.stream;
 
-  Future<Map<String, dynamic>> subscribeToHeaterStatus(
-      BluetoothDevice device) async {
+  Future<Map<String, dynamic>> readHeaterStatus(BluetoothDevice device) async {
     List<BluetoothService> services = await device.discoverServices();
     for (BluetoothService service in services) {
       if (service.uuid.toString().contains("cccc")) {
