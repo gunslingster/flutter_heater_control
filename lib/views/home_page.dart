@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_bluetooth_app/controllers/bluetooth_controller.dart';
@@ -5,6 +7,7 @@ import 'package:get/get.dart';
 import 'control_page.dart';
 import 'package:flutter_bluetooth_app/device_names.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -46,12 +49,24 @@ class HomePage extends StatelessWidget {
 
   Future<PermissionStatus> _requestPermissions() async {
     // Request Bluetooth permissions
-    final btStatus = await Permission.bluetooth.request();
-    // Request Location permissions
-    final locationStatus = await Permission.location.request();
-    return btStatus.isGranted && locationStatus.isGranted
-        ? PermissionStatus.granted
-        : PermissionStatus.denied;
+    // Android 11 and above
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    int version = androidInfo.version.sdkInt;
+    if (version >= 31) {
+      final bt_scan_status = await Permission.bluetoothScan.request();
+      final bt_connect_status = await Permission.bluetoothConnect.request();
+      return bt_scan_status.isGranted && bt_connect_status.isGranted
+          ? PermissionStatus.granted
+          : PermissionStatus.denied;
+    } else {
+      final btStatus = await Permission.bluetooth.request();
+      // Request Location permissions
+      final locationStatus = await Permission.location.request();
+      return btStatus.isGranted && locationStatus.isGranted
+          ? PermissionStatus.granted
+          : PermissionStatus.denied;
+    }
   }
 
   Widget _buildMainUI(BluetoothController controller) {
