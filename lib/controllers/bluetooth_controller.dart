@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'dart:async';
 
 class BluetoothController extends GetxController {
-  FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
-
   final StreamController<List<ScanResult>> _scanResultsController =
       StreamController<List<ScanResult>>();
 
@@ -41,10 +39,10 @@ class BluetoothController extends GetxController {
 
   Future<void> scanDevices() async {
     // Start scanning
-    flutterBlue.startScan(timeout: const Duration(seconds: 5));
+    FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
 
     // Listen to scan results
-    await for (var results in flutterBlue.scanResults) {
+    await for (var results in FlutterBluePlus.scanResults) {
       // Filter devices by service UUID containing 'CCCC'
       var filteredResults = results.where((result) => result
           .advertisementData.serviceUuids
@@ -55,7 +53,7 @@ class BluetoothController extends GetxController {
     }
 
     // Stop scanning
-    flutterBlue.stopScan();
+    FlutterBluePlus.stopScan();
   }
 
   Stream<List<ScanResult>> get scanResults => _scanResultsController.stream;
@@ -66,7 +64,8 @@ class BluetoothController extends GetxController {
 
   // disconnect from device
   Future<void> disconnectFromDevice() async {
-    List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    List<BluetoothDevice> connectedDevices =
+        await FlutterBluePlus.connectedSystemDevices;
     for (BluetoothDevice device in connectedDevices) {
       await device.disconnect();
     }
@@ -74,7 +73,8 @@ class BluetoothController extends GetxController {
 
   // Function to get the currently connected device
   Future<BluetoothDevice?> getConnectedDevice() async {
-    List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    List<BluetoothDevice> connectedDevices =
+        await FlutterBluePlus.connectedSystemDevices;
     if (connectedDevices.isNotEmpty) {
       return connectedDevices.first;
     } else {
@@ -94,15 +94,16 @@ class BluetoothController extends GetxController {
     if (device != null) {
       List<BluetoothService> services = await device.discoverServices();
       for (BluetoothService service in services) {
-        if (service.uuid.toString().contains("cccc")) {
+        if (service.uuid.toString().toLowerCase().contains("cccc")) {
           List<BluetoothCharacteristic> characteristics =
               service.characteristics;
           for (BluetoothCharacteristic characteristic in characteristics) {
-            if (characteristic.uuid.toString() ==
+            if (characteristic.uuid.toString().toLowerCase() ==
                 "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
               String dataString = jsonEncode(controlData);
               List<int> dataBytes = dataString.codeUnits;
-              await characteristic.write(dataBytes);
+              await characteristic.write(dataBytes,
+                  withoutResponse: false, timeout: 5, allowLongWrite: true);
               break; // Exit the loop after writing
             }
           }

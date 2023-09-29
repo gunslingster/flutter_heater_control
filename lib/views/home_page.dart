@@ -31,11 +31,11 @@ class HomePage extends StatelessWidget {
                   return _buildMainUI(controller);
                 } else {
                   // Permissions denied, show an error message or another UI
-                  return Center(child: Text("Permissions not granted."));
+                  return const Center(child: Text("Permissions not granted."));
                 }
               } else {
                 // Still loading, show a loading indicator
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
             },
           );
@@ -87,10 +87,10 @@ class HomePage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final device = snapshot.data![index].device;
                     return FutureBuilder<String?>(
-                      future: getCustomDeviceName(device.id.toString()),
+                      future: getCustomDeviceName(device.remoteId.toString()),
                       builder: (context, deviceNameSnapshot) {
-                        String displayName = device.name.isNotEmpty
-                            ? device.name
+                        String displayName = device.localName.isNotEmpty
+                            ? device.localName
                             : 'Unknown Device';
 
                         if (deviceNameSnapshot.hasData &&
@@ -115,10 +115,10 @@ class HomePage extends StatelessWidget {
                                   ),
                                 );
                               },
-                              child: Text(
-                                  BluetoothDeviceState.connected == device.state
-                                      ? 'Connected'
-                                      : 'Connect'),
+                              child: Text(BluetoothConnectionState ==
+                                      device.connectionState
+                                  ? 'Connected'
+                                  : 'Connect'),
                             ),
                           ),
                         );

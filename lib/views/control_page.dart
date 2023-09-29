@@ -41,7 +41,7 @@ class _ControlPageState extends State<ControlPage> {
 
     print("In init state 2");
     // Ensure the device is connected before discovering services
-    if (widget.device.state != BluetoothDeviceState.connected) {
+    if (widget.device.connectionState != BluetoothConnectionState) {
       await widget.device.connect();
     }
 
