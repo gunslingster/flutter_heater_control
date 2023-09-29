@@ -35,27 +35,38 @@ class _ControlPageState extends State<ControlPage> {
     setupBluetooth();
   }
 
+  ElevatedButton _timeButton(String label, int minutes) {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _selectedMinutes = minutes;
+          _remainingTime = Duration(minutes: _selectedMinutes);
+        });
+        _bluetoothController.sendControlData(
+            _isHeaterOn, _selectedMinutes, _sliderValue);
+      },
+      child: Text(label),
+    );
+  }
+
   Future<void> setupBluetooth() async {
-    print("In init state");
     _bluetoothController = Get.find<BluetoothController>();
 
-    print("In init state 2");
     // Ensure the device is connected before discovering services
-    if (widget.device.connectionState != BluetoothConnectionState) {
+    if (widget.device.connectionState != BluetoothConnectionState.connected) {
       await widget.device.connect();
     }
 
     // Now get the heater status. Since you're reading it once, you can wait for the value to be available.
     Map<String, dynamic> status =
         await _bluetoothController.readHeaterStatus(widget.device);
-    print("In init state 3");
     print("Received Data from ESP32: $status");
     if (mounted) {
       // Check if the widget is still in the tree
       // Check if the widget is still in the tree
       setState(() {
         _isHeaterOn = status["isHeaterOn"] ?? false;
-        _selectedMinutes = status["timerValue"] ?? 240;
+        // _selectedMinutes = status["timerValue"] ?? 240;
         _sliderValue = (status["sliderValue"] ?? 50.0).toDouble();
 
         // Get remaining time from the received data
@@ -149,30 +160,6 @@ class _ControlPageState extends State<ControlPage> {
     });
   }
 
-  void _incrementMinutes() {
-    setState(() {
-      if (_isHeaterOn && _selectedMinutes < 240) {
-        _selectedMinutes += 30;
-        _remainingTime = Duration(minutes: _selectedMinutes);
-      } else if (!_isHeaterOn && _selectedMinutes < 240) {
-        _selectedMinutes += 30;
-        _remainingTime = Duration(minutes: _selectedMinutes);
-      }
-    });
-  }
-
-  void _decrementMinutes() {
-    setState(() {
-      if (_isHeaterOn && _selectedMinutes > 30) {
-        _selectedMinutes -= 30;
-        _remainingTime = Duration(minutes: _selectedMinutes);
-      } else if (!_isHeaterOn && _selectedMinutes > 30) {
-        _selectedMinutes -= 30;
-        _remainingTime = Duration(minutes: _selectedMinutes);
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -225,29 +212,18 @@ class _ControlPageState extends State<ControlPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          _incrementMinutes();
-                          controller.sendControlData(
-                              _isHeaterOn, _selectedMinutes, _sliderValue);
-                        },
-                        icon: Icon(Icons.arrow_upward),
-                        color: _isHeaterOn ? Colors.green : Colors.grey,
-                      ),
-                      Text(
-                        '${_remainingTime.inHours.toString().padLeft(2, '0')}:${(_remainingTime.inMinutes % 60).toString().padLeft(2, '0')}:${(_remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
-                        style: TextStyle(fontSize: 24),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          _decrementMinutes();
-                          controller.sendControlData(
-                              _isHeaterOn, _selectedMinutes, _sliderValue);
-                        },
-                        icon: Icon(Icons.arrow_downward),
-                        color: _isHeaterOn ? Colors.red : Colors.grey,
-                      ),
+                      _timeButton("1 hour", 60),
+                      _timeButton("2 hours", 120),
+                      _timeButton("3 hours", 180),
+                      _timeButton("4 hours", 240),
                     ],
+                  ),
+                  SizedBox(
+                      height:
+                          20), // Add some spacing between the buttons and the timer text
+                  Text(
+                    '${_remainingTime.inHours.toString().padLeft(2, '0')}:${(_remainingTime.inMinutes % 60).toString().padLeft(2, '0')}:${(_remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
+                    style: TextStyle(fontSize: 24),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
