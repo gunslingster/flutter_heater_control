@@ -47,27 +47,47 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Future<PermissionStatus> _requestPermissions() async {
-    // Request Bluetooth permissions
-    // Android 11 and above
+Future<PermissionStatus> _requestPermissions() async {
+  // Request Bluetooth and Location permissions using the permission_handler package
+  final permissions = <Permission>[
+    Permission.bluetoothScan,
+    Permission.bluetoothConnect,
+    Permission.location,
+  ];
+
+  // Request permissions based on platform
+  final permissionStatusList = await permissions.request();
+
+  // Check the status of each permission
+  if (Platform.isAndroid) {
+    // On Android, check Bluetooth permissions based on Android version
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     int version = androidInfo.version.sdkInt;
     if (version >= 31) {
-      final bt_scan_status = await Permission.bluetoothScan.request();
-      final bt_connect_status = await Permission.bluetoothConnect.request();
-      return bt_scan_status.isGranted && bt_connect_status.isGranted
+      return (permissionStatusList[Permission.bluetoothScan]?.isGranted ?? false) &&
+          (permissionStatusList[Permission.bluetoothConnect]?.isGranted ?? false)
           ? PermissionStatus.granted
           : PermissionStatus.denied;
     } else {
-      final btStatus = await Permission.bluetooth.request();
-      // Request Location permissions
-      final locationStatus = await Permission.location.request();
-      return btStatus.isGranted && locationStatus.isGranted
+      return (permissionStatusList[Permission.bluetooth]?.isGranted ?? false) &&
+          (permissionStatusList[Permission.location]?.isGranted ?? false)
           ? PermissionStatus.granted
           : PermissionStatus.denied;
     }
+  } else if (Platform.isIOS) {
+    // // On iOS, check Bluetooth and Location permissions
+    // return (permissionStatusList[Permission.bluetoothScan]?.isGranted ?? false) &&
+    //     (permissionStatusList[Permission.bluetoothConnect]?.isGranted ?? false) &&
+    //     (permissionStatusList[Permission.location]?.isGranted ?? false)
+    //     ? PermissionStatus.granted
+    //     : PermissionStatus.denied;
+    return PermissionStatus.granted;
+  } else {
+    // For other platforms, consider handling permissions accordingly
+    return PermissionStatus.denied;
   }
+}
 
   Widget _buildMainUI(BluetoothController controller) {
     return SingleChildScrollView(
